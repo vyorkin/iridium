@@ -1,8 +1,6 @@
 use std::io::{self, Write};
 use crate::vm::VM;
 
-pub static PROMPT: &'static str = ">>> ";
-
 pub struct REPL {
     vm: VM,
     command_buffer: Vec<String>,
