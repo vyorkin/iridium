@@ -99,6 +99,18 @@ impl VM {
                 self.equal_flag = reg1 == reg2;
                 self.pc += 1;
             }
+            Opcode::JEQ => {
+                let target = self.registers[self.next_8_bits() as usize];
+                if self.equal_flag {
+                    self.pc = target as usize;
+                }
+            }
+            Opcode::JNEQ => {
+                let target = self.registers[self.next_8_bits() as usize];
+                if !self.equal_flag {
+                    self.pc = target as usize;
+                }
+            }
             Opcode::HLT => {
                 println!("HLT encountered, stopping VM");
                 return true;
@@ -196,6 +208,37 @@ mod tests {
         vm.registers[1] = 20;
         vm.step();
         assert_eq!(vm.equal_flag, false);
+    }
+
+    #[test]
+    fn test_opcode_jeq() {
+        let mut vm = VM::new();
+        vm.registers[0] = 7;
+        vm.equal_flag = true;
+        vm.program = vec![
+            Opcode::JEQ.into(), 0, 0, 0,
+            17, 0, 0, 0,
+            17, 0, 0, 0,
+        ];
+        vm.step();
+        assert_eq!(vm.pc, 7);
+    }
+
+    #[test]
+    fn test_opcode_jneq() {
+        let mut vm = VM::new();
+        vm.registers[0] = 6;
+        vm.equal_flag = true;
+        vm.program = vec![
+            Opcode::JNEQ.into(), 0,
+            Opcode::JNEQ.into(), 0,
+            0, 0, 0, 0,
+        ];
+        vm.step();
+        assert_eq!(vm.pc, 2);
+        vm.equal_flag = false;
+        vm.step();
+        assert_eq!(vm.pc, 6);
     }
 
     #[test]
