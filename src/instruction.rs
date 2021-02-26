@@ -9,8 +9,14 @@ pub enum Opcode {
     SUB,
     MUL,
     DIV,
+    /// Equality comparison.
+    EQ,
     /// Abolute jump.
     JMP,
+    /// Forward relative jump.
+    JMPF,
+    /// Backward relative jump.
+    JMPB,
     /// Halt VM execution.
     HLT,
     /// Illegal opcode encountered.
@@ -27,6 +33,9 @@ impl From<u8> for Opcode {
             4 => Opcode::MUL,
             5 => Opcode::DIV,
             6 => Opcode::JMP,
+            7 => Opcode::JMPF,
+            8 => Opcode::JMPB,
+            9 => Opcode::EQ,
             99 => Opcode::HLT,
             b => Opcode::IGL(b),
         }
@@ -43,6 +52,9 @@ impl From<Opcode> for u8 {
             Opcode::MUL => 4,
             Opcode::DIV => 5,
             Opcode::JMP => 6,
+            Opcode::JMPF => 7,
+            Opcode::JMPB => 8,
+            Opcode::EQ => 9,
             Opcode::HLT => 99,
             Opcode::IGL(b) => b,
         }

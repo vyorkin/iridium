@@ -8,8 +8,10 @@ pub struct VM {
     pc: usize,
     /// Contains program bytecode.
     program: Vec<u8>,
-    /// Stores a division remainder.
+    /// Contains a remainder of module division operations.
     remainder: u32,
+    /// Contains the result of the last comparison operation.
+    equal_flag: bool,
 }
 
 impl VM {
@@ -20,6 +22,7 @@ impl VM {
             program: vec![],
             pc: 0,
             remainder: 0,
+            equal_flag: false,
         }
     }
 
@@ -44,6 +47,8 @@ impl VM {
     }
 
     /// Executes current VM instruction.
+    ///
+    /// Note that our virtual CPU always reads 16 or 32 bits of data at a time.
     fn execute_instruction(&mut self) -> bool {
         if self.pc >= self.program.len() {
             return true;
@@ -79,6 +84,20 @@ impl VM {
             Opcode::JMP => {
                 let target = self.registers[self.next_8_bits() as usize];
                 self.pc = target as usize;
+            }
+            Opcode::JMPF => {
+                let offset = self.registers[self.next_8_bits() as usize];
+                self.pc += offset as usize;
+            }
+            Opcode::JMPB => {
+                let offset = self.registers[self.next_8_bits() as usize];
+                self.pc -= offset as usize;
+            }
+            Opcode::EQ => {
+                let reg1 = self.registers[self.next_8_bits() as usize];
+                let reg2 = self.registers[self.next_8_bits() as usize];
+                self.equal_flag = reg1 == reg2;
+                self.pc += 1;
             }
             Opcode::HLT => {
                 println!("HLT encountered, stopping VM");
@@ -149,6 +168,34 @@ mod tests {
         vm.program = vec![0, 0, Opcode::JMP.into(), 0, 0];
         vm.step_times(3);
         assert_eq!(vm.pc, 1);
+    }
+
+    #[test]
+    fn test_opcode_jmpf() {
+        let mut vm = VM::new();
+        vm.registers[0] = 2;
+        vm.program = vec![Opcode::JMPF.into(), 0, 0, 0, 6, 0, 0, 0];
+        // pc  = 1 (in self.decode_opcode)
+        // pc += 1 (in self.next_8_bits)
+        vm.step();
+        // pc += 2 (in JPMF opcode handler)
+        assert_eq!(vm.pc, 4);
+    }
+
+    #[test]
+    fn test_opcode_eq() {
+        let mut vm = VM::new();
+        vm.registers[0] = 10;
+        vm.registers[1] = 10;
+        vm.program = vec![
+            Opcode::EQ.into(), 0, 1, 0,
+            Opcode::EQ.into(), 0, 1, 0,
+        ];
+        vm.step();
+        assert_eq!(vm.equal_flag, true);
+        vm.registers[1] = 20;
+        vm.step();
+        assert_eq!(vm.equal_flag, false);
     }
 
     #[test]
