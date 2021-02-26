@@ -1,5 +1,8 @@
-use std::io::{self, Write};
 use crate::vm::VM;
+use std::{
+    io::{self, Write},
+    num::ParseIntError,
+};
 
 pub struct REPL {
     vm: VM,
@@ -28,7 +31,9 @@ impl REPL {
             print!(">>> ");
             stdout.flush().expect("Unable to flush STDOUT");
 
-            stdin.read_line(&mut buffer).expect("Unable to read from STDIN");
+            stdin
+                .read_line(&mut buffer)
+                .expect("Unable to read from STDIN");
             let cmd = buffer.trim();
             self.command_buffer.push(cmd.to_string());
             match cmd {
@@ -49,10 +54,31 @@ impl REPL {
                     println!("Bye");
                     std::process::exit(0);
                 }
-                _ => {
-                    println!("Invalid input");
+                s => {
+                    match self.parse_hex(s) {
+                        Ok(bytes) => {
+                            self.vm.add_bytes(bytes);
+                        }
+                        Err(err) => {
+                            println!("Unable to decode hex string: {}. Please enter 4 groups of 2 hex characters", err);
+                        }
+                    };
+                    self.vm.step();
                 }
             }
         }
+    }
+
+    /// Accepts a hexadecimal string WITHOUT a
+    /// leading `0x` and returns a `Vec<u8>`.
+    /// Example for a LOAD command: 00 01 03 E8.
+    fn parse_hex(&mut self, i: &str) -> Result<Vec<u8>, ParseIntError> {
+        let split = i.split(" ").collect::<Vec<&str>>();
+        let mut results: Vec<u8> = vec![];
+        for hex_str in split {
+            let byte = u8::from_str_radix(&hex_str, 16)?;
+            results.push(byte);
+        }
+        Ok(results)
     }
 }

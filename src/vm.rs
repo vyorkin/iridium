@@ -26,6 +26,14 @@ impl VM {
         }
     }
 
+    pub fn add_byte(&mut self, byte: u8) {
+        self.program.push(byte);
+    }
+
+    pub fn add_bytes(&mut self, mut bytes: Vec<u8>) {
+        self.program.append(&mut bytes);
+    }
+
     /// Runs the VM.
     pub fn run(&mut self) {
         let mut done = false;
