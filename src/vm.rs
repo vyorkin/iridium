@@ -3,11 +3,11 @@ use crate::instruction::Opcode;
 /// Virtual machine state.
 pub struct VM {
     /// VM registers.
-    registers: [i32; 32],
+    pub registers: [i32; 32],
     /// Program counter.
     pc: usize,
     /// Contains program bytecode.
-    program: Vec<u8>,
+    pub program: Vec<u8>,
     /// Contains a remainder of module division operations.
     remainder: u32,
     /// Contains the result of the last comparison operation.

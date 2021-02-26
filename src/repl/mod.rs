@@ -32,6 +32,14 @@ impl REPL {
             let cmd = buffer.trim();
             self.command_buffer.push(cmd.to_string());
             match cmd {
+                ".program" => {
+                    for instr in &self.vm.program {
+                        println!("{}", instr);
+                    }
+                }
+                ".registers" => {
+                    println!("{:#?}", self.vm.registers);
+                }
                 ".history" => {
                     for cmd in &self.command_buffer {
                         println!("{}", cmd)
