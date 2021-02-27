@@ -1,4 +1,3 @@
-use std::{convert::TryInto, error::Error};
 use std::fmt::{self, Display};
 use crate::instruction::Opcode;
 
