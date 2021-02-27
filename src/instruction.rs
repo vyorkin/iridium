@@ -1,5 +1,5 @@
 /// VM opcodes.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Opcode {
     /// No operation.
     NOP,

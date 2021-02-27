@@ -1,8 +1,6 @@
 use crate::vm::VM;
-use std::{
-    io::{self, Write},
-    num::ParseIntError,
-};
+use crate::assembler::program_parsers::program;
+use std::io::{self, Write};
 
 pub struct REPL {
     vm: VM,
@@ -55,30 +53,16 @@ impl REPL {
                     std::process::exit(0);
                 }
                 s => {
-                    match self.parse_hex(s) {
-                        Ok(bytes) => {
-                            self.vm.add_bytes(bytes);
-                        }
-                        Err(err) => {
-                            println!("Unable to decode hex string: {}. Please enter 4 groups of 2 hex characters", err);
-                        }
-                    };
+                    let parsed = program(s);
+                    if !parsed.is_ok() {
+                        println!("Unable to parse input");
+                        continue;
+                    }
+                    let (_, result) = parsed.unwrap();
+                    self.vm.add_bytes(result.to_bytes());
                     self.vm.step();
                 }
             }
         }
-    }
-
-    /// Accepts a hexadecimal string WITHOUT a
-    /// leading `0x` and returns a `Vec<u8>`.
-    /// Example for a LOAD command: 00 01 03 E8.
-    fn parse_hex(&mut self, i: &str) -> Result<Vec<u8>, ParseIntError> {
-        let split = i.split(" ").collect::<Vec<&str>>();
-        let mut results: Vec<u8> = vec![];
-        for hex_str in split {
-            let byte = u8::from_str_radix(&hex_str, 16)?;
-            results.push(byte);
-        }
-        Ok(results)
     }
 }
