@@ -9,6 +9,8 @@ pub struct VM {
     pc: usize,
     /// Contains program bytecode.
     pub program: Vec<u8>,
+    /// Memory heap.
+    heap: Vec<u8>,
     /// Contains a remainder of module division operations.
     remainder: u32,
     /// Contains the result of the last comparison operation.
@@ -20,6 +22,7 @@ impl Default for VM {
         VM {
             registers: [0; 32],
             program: vec![],
+            heap: vec![],
             pc: 0,
             remainder: 0,
             equal_flag: false,
@@ -71,57 +74,63 @@ impl VM {
         match self.decode_opcode() {
             Opcode::NOP => {}
             Opcode::LOAD => {
-                let reg = self.next_8_bits() as usize;
-                let num = self.next_16_bits() as u16;
+                let reg = self.next_8();
+                let num = self.next_16();
                 self.registers[reg] = num as i32;
             }
+            Opcode::ALLOC => {
+                let reg = self.next_8();
+                let bytes = self.registers[reg];
+                let size = self.heap.len() as i32 + bytes;
+                self.heap.resize(size as usize, 0);
+            }
             Opcode::ADD => {
-                let reg1 = self.registers[self.next_8_bits() as usize];
-                let reg2 = self.registers[self.next_8_bits() as usize];
-                self.registers[self.next_8_bits() as usize] = reg1 + reg2;
+                let reg1 = self.registers[self.next_8()];
+                let reg2 = self.registers[self.next_8()];
+                self.registers[self.next_8()] = reg1 + reg2;
             }
             Opcode::SUB => {
-                let reg1 = self.registers[self.next_8_bits() as usize];
-                let reg2 = self.registers[self.next_8_bits() as usize];
-                self.registers[self.next_8_bits() as usize] = reg1 - reg2;
+                let reg1 = self.registers[self.next_8()];
+                let reg2 = self.registers[self.next_8()];
+                self.registers[self.next_8()] = reg1 - reg2;
             }
             Opcode::MUL => {
-                let reg1 = self.registers[self.next_8_bits() as usize];
-                let reg2 = self.registers[self.next_8_bits() as usize];
-                self.registers[self.next_8_bits() as usize] = reg1 * reg2;
+                let reg1 = self.registers[self.next_8()];
+                let reg2 = self.registers[self.next_8()];
+                self.registers[self.next_8()] = reg1 * reg2;
             }
             Opcode::DIV => {
-                let reg1 = self.registers[self.next_8_bits() as usize];
-                let reg2 = self.registers[self.next_8_bits() as usize];
-                self.registers[self.next_8_bits() as usize] = reg1 + reg2;
+                let reg1 = self.registers[self.next_8()];
+                let reg2 = self.registers[self.next_8()];
+                self.registers[self.next_8()] = reg1 + reg2;
                 self.remainder = (reg1 % reg2) as u32;
             }
             Opcode::JMP => {
-                let target = self.registers[self.next_8_bits() as usize];
+                let target = self.registers[self.next_8()];
                 self.pc = target as usize;
             }
             Opcode::JMPF => {
-                let offset = self.registers[self.next_8_bits() as usize];
+                let offset = self.registers[self.next_8()];
                 self.pc += offset as usize;
             }
             Opcode::JMPB => {
-                let offset = self.registers[self.next_8_bits() as usize];
+                let offset = self.registers[self.next_8()];
                 self.pc -= offset as usize;
             }
             Opcode::EQ => {
-                let reg1 = self.registers[self.next_8_bits() as usize];
-                let reg2 = self.registers[self.next_8_bits() as usize];
+                let reg1 = self.registers[self.next_8()];
+                let reg2 = self.registers[self.next_8()];
                 self.equal_flag = reg1 == reg2;
                 self.pc += 1;
             }
             Opcode::JEQ => {
-                let target = self.registers[self.next_8_bits() as usize];
+                let target = self.registers[self.next_8()];
                 if self.equal_flag {
                     self.pc = target as usize;
                 }
             }
             Opcode::JNEQ => {
-                let target = self.registers[self.next_8_bits() as usize];
+                let target = self.registers[self.next_8()];
                 if !self.equal_flag {
                     self.pc = target as usize;
                 }
@@ -138,15 +147,15 @@ impl VM {
         false
     }
 
-    /// Reads next byte as `u8`.
-    fn next_8_bits(&mut self) -> u8 {
+    /// Reads next byte as `usize`.
+    fn next_8(&mut self) -> usize {
         let result = self.program[self.pc];
         self.pc += 1;
-        result
+        result as usize
     }
 
     /// Reads next 2 bytes as `u16`.
-    fn next_16_bits(&mut self) -> u16 {
+    fn next_16(&mut self) -> u16 {
         let high = (self.program[self.pc] as u16) << 8;
         let low = self.program[self.pc + 1] as u16;
         self.pc += 2;
@@ -186,6 +195,15 @@ mod tests {
         // 500 = 111110100
         vm.run();
         assert_eq!(vm.registers[0], 500);
+    }
+
+    #[test]
+    fn test_opcode_alloc() {
+        let mut vm = VM::new();
+        vm.registers[0] = 1024;
+        vm.program = vec![Opcode::ALLOC.into(), 0, 0, 0];
+        vm.step();
+        assert_eq!(vm.heap.len(), 1024);
     }
 
     #[test]

@@ -5,6 +5,8 @@ pub enum Opcode {
     NOP,
     /// Load a number into register.
     LOAD,
+    /// Allocate a chunk of memory from a heap.
+    ALLOC,
     ADD,
     SUB,
     MUL,
@@ -32,6 +34,7 @@ impl From<&str> for Opcode {
         match source {
             "nop" => Opcode::NOP,
             "load" => Opcode::LOAD,
+            "alloc" => Opcode::ALLOC,
             "add" => Opcode::ADD,
             "sub" => Opcode::SUB,
             "mul" => Opcode::MUL,
@@ -53,16 +56,17 @@ impl From<u8> for Opcode {
         match source {
             0 => Opcode::NOP,
             1 => Opcode::LOAD,
-            2 => Opcode::ADD,
-            3 => Opcode::SUB,
-            4 => Opcode::MUL,
-            5 => Opcode::DIV,
-            6 => Opcode::JMP,
-            7 => Opcode::JMPF,
-            8 => Opcode::JMPB,
-            9 => Opcode::EQ,
-            10 => Opcode::JEQ,
-            11 => Opcode::JNEQ,
+            2 => Opcode::ALLOC,
+            3 => Opcode::ADD,
+            4 => Opcode::SUB,
+            5 => Opcode::MUL,
+            6 => Opcode::DIV,
+            7 => Opcode::JMP,
+            8 => Opcode::JMPF,
+            9 => Opcode::JMPB,
+            10 => Opcode::EQ,
+            11 => Opcode::JEQ,
+            12 => Opcode::JNEQ,
             99 => Opcode::HLT,
             _ => Opcode::IGL,
         }
@@ -74,16 +78,17 @@ impl From<Opcode> for u8 {
         match source {
             Opcode::NOP => 0,
             Opcode::LOAD => 1,
-            Opcode::ADD => 2,
-            Opcode::SUB => 3,
-            Opcode::MUL => 4,
-            Opcode::DIV => 5,
-            Opcode::JMP => 6,
-            Opcode::JMPF => 7,
-            Opcode::JMPB => 8,
-            Opcode::EQ => 9,
-            Opcode::JEQ => 10,
-            Opcode::JNEQ => 11,
+            Opcode::ALLOC => 2,
+            Opcode::ADD => 3,
+            Opcode::SUB => 4,
+            Opcode::MUL => 5,
+            Opcode::DIV => 6,
+            Opcode::JMP => 7,
+            Opcode::JMPF => 8,
+            Opcode::JMPB => 9,
+            Opcode::EQ => 10,
+            Opcode::JEQ => 11,
+            Opcode::JNEQ => 12,
             Opcode::HLT => 99,
             Opcode::IGL => 100,
         }
@@ -106,7 +111,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_name() {
+    fn test_opcode_from_str() {
         let opcode = Opcode::from("load");
         assert_eq!(opcode, Opcode::LOAD);
         let opcode = Opcode::from("illegal");
