@@ -1,5 +1,5 @@
-use crate::vm::VM;
 use crate::assembler::program_parsers::program;
+use crate::vm::VM;
 use std::io::{self, Write};
 
 pub struct REPL {
@@ -53,13 +53,14 @@ impl REPL {
                     std::process::exit(0);
                 }
                 s => {
-                    let parsed = program(s);
-                    if !parsed.is_ok() {
-                        println!("Unable to parse input");
-                        continue;
-                    }
-                    let (_, result) = parsed.unwrap();
-                    self.vm.add_bytes(result.to_bytes());
+                    let program = match program(s) {
+                        Ok((_, program)) => program,
+                        Err(_) => {
+                            println!("Unable to parse input");
+                            continue;
+                        }
+                    };
+                    self.vm.add_bytes(program.to_bytes());
                     self.vm.step();
                 }
             }

@@ -1,6 +1,6 @@
-use nom::{do_parse, named, tag_no_case};
 use crate::assembler::opcode::Token;
 use crate::instruction::Opcode;
+use nom::{do_parse, named, tag_no_case};
 
 named!(
     pub opcode_load<&str, Token>,

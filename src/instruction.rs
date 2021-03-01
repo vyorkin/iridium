@@ -69,7 +69,6 @@ impl From<Opcode> for u8 {
     }
 }
 
-
 #[derive(Debug, PartialEq)]
 pub struct Instruction {
     opcode: Opcode,

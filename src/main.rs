@@ -1,10 +1,10 @@
-pub mod vm;
+pub mod assembler;
 pub mod instruction;
 pub mod repl;
-pub mod assembler;
+pub mod vm;
 
-use vm::VM;
 use repl::REPL;
+use vm::VM;
 
 fn main() {
     let vm = VM::new();

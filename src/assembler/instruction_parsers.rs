@@ -57,9 +57,8 @@ impl Instruction {
         let mut bytes = vec![];
         let operands = vec![&self.operand1, &self.operand2, &self.operand3];
         for op in operands {
-            match op {
-                Some(token) => bytes.append(&mut token.operand_bytes().unwrap()),
-                None => {}
+            if let Some(token) = op {
+                bytes.append(&mut token.operand_bytes().unwrap())
             }
         }
         bytes

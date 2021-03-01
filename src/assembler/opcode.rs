@@ -1,5 +1,5 @@
-use std::fmt::{self, Display};
 use crate::instruction::Opcode;
+use std::fmt::{self, Display};
 
 #[derive(Debug, Clone)]
 pub enum TokenError {
@@ -49,7 +49,7 @@ impl Token {
             }
             token => {
                 return Err(TokenError::UnexpectedOpcode(token.clone()));
-            },
+            }
         }
         Ok(bytes)
     }

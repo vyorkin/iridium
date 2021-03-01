@@ -1,6 +1,6 @@
-use nom::{do_parse, named, tag};
-use nom::character::complete::digit1;
 use crate::assembler::opcode::Token;
+use nom::character::complete::digit1;
+use nom::{do_parse, named, tag};
 
 named!(
     pub number<&str, Token>,

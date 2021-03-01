@@ -1,7 +1,7 @@
-use nom::{do_parse, named, separated_list1};
 use nom::character::complete::line_ending;
+use nom::{do_parse, named, separated_list1};
 
-use crate::assembler::instruction_parsers::{Instruction, instruction_one};
+use crate::assembler::instruction_parsers::{instruction_one, Instruction};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {

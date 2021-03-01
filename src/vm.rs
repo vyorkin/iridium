@@ -1,6 +1,7 @@
 use crate::instruction::Opcode;
 
 /// Virtual machine state.
+#[allow(dead_code)]
 pub struct VM {
     /// VM registers.
     pub registers: [i32; 32],
@@ -207,10 +208,7 @@ mod tests {
         let mut vm = VM::new();
         vm.registers[0] = 10;
         vm.registers[1] = 10;
-        vm.program = vec![
-            Opcode::EQ.into(), 0, 1, 0,
-            Opcode::EQ.into(), 0, 1, 0,
-        ];
+        vm.program = vec![Opcode::EQ.into(), 0, 1, 0, Opcode::EQ.into(), 0, 1, 0];
         vm.step();
         assert_eq!(vm.equal_flag, true);
         vm.registers[1] = 20;
@@ -223,11 +221,7 @@ mod tests {
         let mut vm = VM::new();
         vm.registers[0] = 7;
         vm.equal_flag = true;
-        vm.program = vec![
-            Opcode::JEQ.into(), 0, 0, 0,
-            17, 0, 0, 0,
-            17, 0, 0, 0,
-        ];
+        vm.program = vec![Opcode::JEQ.into(), 0, 0, 0, 17, 0, 0, 0, 17, 0, 0, 0];
         vm.step();
         assert_eq!(vm.pc, 7);
     }
@@ -237,11 +231,7 @@ mod tests {
         let mut vm = VM::new();
         vm.registers[0] = 6;
         vm.equal_flag = true;
-        vm.program = vec![
-            Opcode::JNEQ.into(), 0,
-            Opcode::JNEQ.into(), 0,
-            0, 0, 0, 0,
-        ];
+        vm.program = vec![Opcode::JNEQ.into(), 0, Opcode::JNEQ.into(), 0, 0, 0, 0, 0];
         vm.step();
         assert_eq!(vm.pc, 2);
         vm.equal_flag = false;
