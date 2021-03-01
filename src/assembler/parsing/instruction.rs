@@ -2,8 +2,8 @@ use crate::assembler::{
     opcode::Token,
     parsing::{number, opcode, register, ParsingError},
 };
-use nom::character::complete::{line_ending, space1};
-use nom::{do_parse, named, opt};
+use nom::character::complete::{multispace0, space1};
+use nom::{do_parse, named, opt, alt};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
@@ -44,22 +44,45 @@ impl Instruction {
 }
 
 named!(
-    pub instruction<&str, Instruction>,
+    pub instruction_0<&str, Instruction>,
     do_parse!(
         opcode: opcode >>
-        space1 >>
-        reg: register >>
-        space1 >>
-        operand: number >>
-        opt!(line_ending) >>
+        multispace0 >>
         (
             Instruction {
                 opcode,
-                operand1: Some(reg),
-                operand2: Some(operand),
+                operand1: None,
+                operand2: None,
                 operand3: None,
             }
         )
+    )
+);
+
+named!(
+    pub instruction_2<&str, Instruction>,
+    do_parse!(
+        opcode: opcode >>
+        space1 >>
+        reg: opt!(register) >>
+        space1 >>
+        operand: opt!(number) >>
+        multispace0 >>
+        (
+            Instruction {
+                opcode,
+                operand1: reg,
+                operand2: operand,
+                operand3: None,
+            }
+        )
+    )
+);
+
+named!(
+    pub instruction<&str, Instruction>,
+    do_parse!(
+        ins: alt!(instruction_2 | instruction_0) >> (ins)
     )
 );
 
@@ -69,14 +92,26 @@ mod tests {
     use crate::instruction::Opcode;
 
     #[test]
-    fn test_parse_instruction() {
-        let result = instruction("load $0 #100\n");
-        let instruction = Instruction {
+    fn test_parse_instruction_nullary() {
+        let actual = instruction_0("hlt\n");
+        let expected = Instruction {
+            opcode: Token::Op { code: Opcode::HLT },
+            operand1: None,
+            operand2: None,
+            operand3: None,
+        };
+        assert_eq!(Ok(("", expected)), actual);
+    }
+
+    #[test]
+    fn test_parse_instruction_binary() {
+        let actual = instruction_2("load $0 #100  \n");
+        let expected = Instruction {
             opcode: Token::Op { code: Opcode::LOAD },
             operand1: Some(Token::Register { reg_num: 0 }),
             operand2: Some(Token::Number { value: 100 }),
             operand3: None,
         };
-        assert_eq!(Ok(("", instruction)), result);
+        assert_eq!(Ok(("", expected)), actual);
     }
 }

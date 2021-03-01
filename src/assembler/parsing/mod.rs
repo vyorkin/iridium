@@ -6,7 +6,7 @@ mod program;
 mod register;
 
 pub use error::ParsingError;
-pub use instruction::{instruction, Instruction};
+pub use instruction::{instruction, instruction_0, instruction_2, Instruction};
 pub use opcode::opcode;
 pub use operand::number;
 pub use program::{program, Program};
