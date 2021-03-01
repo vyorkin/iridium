@@ -1,6 +1,3 @@
-use crate::assembler::parsing::ParsingError;
-use std::str::FromStr;
-
 /// VM opcodes.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Opcode {
@@ -30,11 +27,9 @@ pub enum Opcode {
     IGL,
 }
 
-impl FromStr for Opcode {
-    type Err = ParsingError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let opcode = match s {
+impl From<&str> for Opcode {
+    fn from(source: &str) -> Self {
+        match source {
             "nop" => Opcode::NOP,
             "load" => Opcode::LOAD,
             "add" => Opcode::ADD,
@@ -49,8 +44,7 @@ impl FromStr for Opcode {
             "jneq" => Opcode::JNEQ,
             "hlt" => Opcode::HLT,
             _ => Opcode::IGL,
-        };
-        Ok(opcode)
+        }
     }
 }
 
@@ -113,9 +107,9 @@ mod tests {
 
     #[test]
     fn test_name() {
-        let opcode = Opcode::from_str("load").unwrap();
+        let opcode = Opcode::from("load");
         assert_eq!(opcode, Opcode::LOAD);
-        let opcode = Opcode::from_str("illegal").unwrap();
+        let opcode = Opcode::from("illegal");
         assert_eq!(opcode, Opcode::IGL);
     }
 

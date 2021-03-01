@@ -2,14 +2,13 @@ use crate::assembler::opcode::Token;
 use crate::instruction::Opcode;
 use nom::character::complete::alpha1;
 use nom::{do_parse, named};
-use std::str::FromStr;
 
 named!(
     pub opcode<&str, Token>,
     do_parse!(
         op: alpha1 >>
         (
-            Token::Op { code: Opcode::from_str(op).unwrap() }
+            Token::Op { code: Opcode::from(op) }
         )
     )
 );
