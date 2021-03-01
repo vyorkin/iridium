@@ -38,7 +38,7 @@ impl Instruction {
         let mut bytes = vec![];
         let opcode = self
             .opcode_bytes()
-            .ok_or(InstructionError::NonOpcode(self.opcode.clone()))?;
+            .ok_or_else(|| InstructionError::NonOpcode(self.opcode.clone()))?;
         let mut operands = self.operand_bytes();
         bytes.push(opcode);
         bytes.append(&mut operands);
@@ -56,10 +56,8 @@ impl Instruction {
     fn operand_bytes(&self) -> Vec<u8> {
         let mut bytes = vec![];
         let operands = vec![&self.operand1, &self.operand2, &self.operand3];
-        for op in operands {
-            if let Some(token) = op {
-                bytes.append(&mut token.operand_bytes().unwrap())
-            }
+        for op in operands.into_iter().flatten() {
+            bytes.append(&mut op.operand_bytes().unwrap())
         }
         bytes
     }

@@ -15,9 +15,8 @@ pub struct VM {
     equal_flag: bool,
 }
 
-impl VM {
-    /// Initializes a fresh VM state.
-    pub fn new() -> VM {
+impl Default for VM {
+    fn default() -> Self {
         VM {
             registers: [0; 32],
             program: vec![],
@@ -25,6 +24,13 @@ impl VM {
             remainder: 0,
             equal_flag: false,
         }
+    }
+}
+
+impl VM {
+    /// Initializes a fresh VM state.
+    pub fn new() -> VM {
+        VM::default()
     }
 
     pub fn add_byte(&mut self, byte: u8) {
