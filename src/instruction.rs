@@ -1,3 +1,6 @@
+use crate::assembler::parsing::ParsingError;
+use std::str::FromStr;
+
 /// VM opcodes.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Opcode {
@@ -24,7 +27,31 @@ pub enum Opcode {
     /// Halt VM execution.
     HLT,
     /// Illegal opcode encountered.
-    IGL(u8),
+    IGL,
+}
+
+impl FromStr for Opcode {
+    type Err = ParsingError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let opcode = match s {
+            "nop" => Opcode::NOP,
+            "load" => Opcode::LOAD,
+            "add" => Opcode::ADD,
+            "sub" => Opcode::SUB,
+            "mul" => Opcode::MUL,
+            "div" => Opcode::DIV,
+            "jmp" => Opcode::JMP,
+            "jmpf" => Opcode::JMPF,
+            "jmpb" => Opcode::JMPB,
+            "eq" => Opcode::EQ,
+            "jeq" => Opcode::JEQ,
+            "jneq" => Opcode::JNEQ,
+            "hlt" => Opcode::HLT,
+            _ => Opcode::IGL,
+        };
+        Ok(opcode)
+    }
 }
 
 impl From<u8> for Opcode {
@@ -43,7 +70,7 @@ impl From<u8> for Opcode {
             10 => Opcode::JEQ,
             11 => Opcode::JNEQ,
             99 => Opcode::HLT,
-            b => Opcode::IGL(b),
+            _ => Opcode::IGL,
         }
     }
 }
@@ -64,7 +91,7 @@ impl From<Opcode> for u8 {
             Opcode::JEQ => 10,
             Opcode::JNEQ => 11,
             Opcode::HLT => 99,
-            Opcode::IGL(b) => b,
+            Opcode::IGL => 100,
         }
     }
 }
@@ -83,6 +110,14 @@ impl Instruction {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_name() {
+        let opcode = Opcode::from_str("load").unwrap();
+        assert_eq!(opcode, Opcode::LOAD);
+        let opcode = Opcode::from_str("illegal").unwrap();
+        assert_eq!(opcode, Opcode::IGL);
+    }
 
     #[test]
     fn test_create_hlt() {

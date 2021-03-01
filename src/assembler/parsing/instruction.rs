@@ -1,6 +1,6 @@
 use crate::assembler::{
     opcode::Token,
-    parsing::{number, opcode_load, register, ParsingError},
+    parsing::{number, opcode, register, ParsingError},
 };
 use nom::character::complete::{line_ending, space1};
 use nom::{do_parse, named, opt};
@@ -46,7 +46,7 @@ impl Instruction {
 named!(
     pub instruction<&str, Instruction>,
     do_parse!(
-        opcode: opcode_load >>
+        opcode: opcode >>
         space1 >>
         reg: register >>
         space1 >>

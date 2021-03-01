@@ -130,8 +130,8 @@ impl VM {
                 println!("HLT encountered, stopping VM");
                 return true;
             }
-            Opcode::IGL(b) => {
-                println!("Unknown opcode {}, terminating VM", b);
+            Opcode::IGL => {
+                println!("Unknown opcode, terminating VM");
                 return true;
             }
         }
