@@ -1,29 +1,9 @@
+use crate::assembler::{
+    opcode::Token,
+    parsing::{number, opcode_load, register, ParsingError},
+};
 use nom::character::complete::{line_ending, space1};
 use nom::{do_parse, named, opt};
-use std::error::Error;
-use std::fmt::{self, Display};
-
-use crate::assembler::opcode::Token;
-use crate::assembler::opcode_parsers::*;
-use crate::assembler::operand_parsers::number;
-use crate::assembler::register_parsers::register;
-
-#[derive(Debug, Clone)]
-pub enum InstructionError {
-    NonOpcode(Token),
-}
-
-impl Display for InstructionError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            InstructionError::NonOpcode(token) => {
-                write!(f, "Non-opcode found in opcode field: {}", token)
-            }
-        }
-    }
-}
-
-impl Error for InstructionError {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
@@ -34,11 +14,11 @@ pub struct Instruction {
 }
 
 impl Instruction {
-    pub fn to_bytes(&self) -> Result<Vec<u8>, InstructionError> {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, ParsingError> {
         let mut bytes = vec![];
         let opcode = self
             .opcode_bytes()
-            .ok_or_else(|| InstructionError::NonOpcode(self.opcode.clone()))?;
+            .ok_or_else(|| ParsingError::OpcodeExpected(self.opcode.clone()))?;
         let mut operands = self.operand_bytes();
         bytes.push(opcode);
         bytes.append(&mut operands);
@@ -64,7 +44,7 @@ impl Instruction {
 }
 
 named!(
-    pub instruction_one<&str, Instruction>,
+    pub instruction<&str, Instruction>,
     do_parse!(
         opcode: opcode_load >>
         space1 >>
@@ -89,8 +69,8 @@ mod tests {
     use crate::instruction::Opcode;
 
     #[test]
-    fn test_parse_instruction_from_one() {
-        let result = instruction_one("load $0 #100\n");
+    fn test_parse_instruction() {
+        let result = instruction("load $0 #100\n");
         let instruction = Instruction {
             opcode: Token::Op { code: Opcode::LOAD },
             operand1: Some(Token::Register { reg_num: 0 }),

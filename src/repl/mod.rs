@@ -1,4 +1,4 @@
-use crate::assembler::program_parsers::program;
+use crate::assembler::parsing::program;
 use crate::vm::VM;
 use std::io::{self, Write};
 
