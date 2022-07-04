@@ -32,8 +32,10 @@ impl REPL {
             stdin
                 .read_line(&mut buffer)
                 .expect("Unable to read from STDIN");
+
             let cmd = buffer.trim();
             self.command_buffer.push(cmd.to_string());
+
             match cmd {
                 ".program" => {
                     for instr in &self.vm.program {
@@ -54,7 +56,7 @@ impl REPL {
                 }
                 s => {
                     let program = match program(s) {
-                        Ok((_, program)) => program,
+                        Ok((_, p)) => p,
                         Err(_) => {
                             println!("Unable to parse input");
                             continue;

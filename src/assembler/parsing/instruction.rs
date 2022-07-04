@@ -1,13 +1,18 @@
 use crate::assembler::{
-    opcode::Token,
-    parsing::{number, opcode, register, ParsingError},
+    parsing::{comment::comment, label::label_decl, opcode, operand::operand, ParsingError},
+    token::Token,
 };
-use nom::character::complete::{multispace0, space1};
-use nom::{do_parse, named, opt, alt};
+
+use nom::{
+    character::complete::{multispace0, space1},
+    do_parse, named, opt, preceded,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
     opcode: Token,
+    label: Option<Token>,
+    directive: Option<Token>,
     operand1: Option<Token>,
     operand2: Option<Token>,
     operand3: Option<Token>,
@@ -44,45 +49,27 @@ impl Instruction {
 }
 
 named!(
-    pub instruction_0<&str, Instruction>,
-    do_parse!(
-        opcode: opcode >>
-        multispace0 >>
-        (
-            Instruction {
-                opcode,
-                operand1: None,
-                operand2: None,
-                operand3: None,
-            }
-        )
-    )
-);
-
-named!(
-    pub instruction_2<&str, Instruction>,
-    do_parse!(
-        opcode: opcode >>
-        space1 >>
-        reg: opt!(register) >>
-        space1 >>
-        operand: opt!(number) >>
-        multispace0 >>
-        (
-            Instruction {
-                opcode,
-                operand1: reg,
-                operand2: operand,
-                operand3: None,
-            }
-        )
-    )
-);
-
-named!(
     pub instruction<&str, Instruction>,
     do_parse!(
-        ins: alt!(instruction_2 | instruction_0) >> (ins)
+    multispace0 >>
+    opt!(comment) >>
+    label: opt!(label_decl) >>
+    opcode: opcode >>
+    operand1: opt!(preceded!(space1, operand)) >>
+    operand2: opt!(preceded!(space1, operand)) >>
+    operand3: opt!(preceded!(space1, operand)) >>
+    opt!(comment) >>
+    multispace0 >>
+    (
+        Instruction {
+            opcode,
+            label,
+            directive: None,
+            operand1,
+            operand2,
+            operand3
+        }
+    )
     )
 );
 
@@ -93,9 +80,11 @@ mod tests {
 
     #[test]
     fn test_parse_instruction_nullary() {
-        let actual = instruction_0("hlt\n");
+        let actual = instruction("hlt\n");
         let expected = Instruction {
             opcode: Token::Op { code: Opcode::HLT },
+            label: None,
+            directive: None,
             operand1: None,
             operand2: None,
             operand3: None,
@@ -105,11 +94,55 @@ mod tests {
 
     #[test]
     fn test_parse_instruction_binary() {
-        let actual = instruction_2("load $0 #100  \n");
+        let actual = instruction("load $0 #100  \n");
         let expected = Instruction {
             opcode: Token::Op { code: Opcode::LOAD },
+            label: None,
+            directive: None,
             operand1: Some(Token::Register { reg_num: 0 }),
             operand2: Some(Token::Number { value: 100 }),
+            operand3: None,
+        };
+        assert_eq!(Ok(("", expected)), actual);
+    }
+
+    #[test]
+    fn test_parse_instruction_ternary() {
+        let actual = instruction("add $0 $1 $2\n\n");
+        let expected = Instruction {
+            opcode: Token::Op { code: Opcode::ADD },
+            label: None,
+            directive: None,
+            operand1: Some(Token::Register { reg_num: 0 }),
+            operand2: Some(Token::Register { reg_num: 1 }),
+            operand3: Some(Token::Register { reg_num: 2 }),
+        };
+        assert_eq!(Ok(("", expected)), actual);
+    }
+
+    #[test]
+    fn test_parse_with_comment_preceded() {
+        let actual = instruction("; whatever comment   \n  mul #100 $2 $3\n");
+        let expected = Instruction {
+            opcode: Token::Op { code: Opcode::MUL },
+            label: None,
+            directive: None,
+            operand1: Some(Token::Number { value: 100 }),
+            operand2: Some(Token::Register { reg_num: 2 }),
+            operand3: Some(Token::Register { reg_num: 3 }),
+        };
+        assert_eq!(Ok(("", expected)), actual);
+    }
+
+    #[test]
+    fn test_parse_with_comment_terminated() {
+        let actual = instruction("jmpf $2    ; comment text\n");
+        let expected = Instruction {
+            opcode: Token::Op { code: Opcode::JMPF },
+            label: None,
+            directive: None,
+            operand1: Some(Token::Register { reg_num: 2 }),
+            operand2: None,
             operand3: None,
         };
         assert_eq!(Ok(("", expected)), actual);

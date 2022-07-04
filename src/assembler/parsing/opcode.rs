@@ -1,4 +1,4 @@
-use crate::assembler::opcode::Token;
+use crate::assembler::token::Token;
 use crate::instruction::Opcode;
 use nom::character::complete::alpha1;
 use nom::{do_parse, named};
@@ -20,7 +20,7 @@ mod tests {
     #[test]
     fn test_opcode() {
         let result = opcode("load");
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         let (rest, token) = result.unwrap();
         assert_eq!(token, Token::Op { code: Opcode::LOAD });
         assert_eq!(rest, "");

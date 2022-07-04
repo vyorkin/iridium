@@ -1,6 +1,6 @@
+use crate::assembler::token::Token;
 use std::error::Error;
 use std::fmt::{self, Display};
-use crate::assembler::opcode::Token;
 
 #[derive(Debug, Clone)]
 pub enum ParsingError {

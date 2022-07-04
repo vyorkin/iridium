@@ -23,6 +23,10 @@ pub enum Opcode {
     JEQ,
     /// Jump if not equal.
     JNEQ,
+    /// Increment.
+    INC,
+    /// Decrement.
+    DEC,
     /// Halt VM execution.
     HLT,
     /// Illegal opcode encountered.
@@ -45,6 +49,8 @@ impl From<&str> for Opcode {
             "eq" => Opcode::EQ,
             "jeq" => Opcode::JEQ,
             "jneq" => Opcode::JNEQ,
+            "inc" => Opcode::INC,
+            "dec" => Opcode::DEC,
             "hlt" => Opcode::HLT,
             _ => Opcode::IGL,
         }
@@ -67,6 +73,8 @@ impl From<u8> for Opcode {
             10 => Opcode::EQ,
             11 => Opcode::JEQ,
             12 => Opcode::JNEQ,
+            13 => Opcode::INC,
+            14 => Opcode::DEC,
             99 => Opcode::HLT,
             _ => Opcode::IGL,
         }
@@ -89,20 +97,11 @@ impl From<Opcode> for u8 {
             Opcode::EQ => 10,
             Opcode::JEQ => 11,
             Opcode::JNEQ => 12,
+            Opcode::INC => 13,
+            Opcode::DEC => 14,
             Opcode::HLT => 99,
             Opcode::IGL => 100,
         }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Instruction {
-    opcode: Opcode,
-}
-
-impl Instruction {
-    pub fn new(opcode: Opcode) -> Self {
-        Self { opcode }
     }
 }
 
@@ -122,11 +121,5 @@ mod tests {
     fn test_create_hlt() {
         let opcode = Opcode::HLT;
         assert_eq!(opcode, Opcode::HLT);
-    }
-
-    #[test]
-    fn test_create_instruction() {
-        let instruction = Instruction::new(Opcode::HLT);
-        assert_eq!(instruction.opcode, Opcode::HLT);
     }
 }

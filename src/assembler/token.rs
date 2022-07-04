@@ -21,6 +21,10 @@ pub enum Token {
     Op { code: Opcode },
     Register { reg_num: u8 },
     Number { value: i32 },
+    LabelDecl { name: String },
+    LabelUsage { name: String },
+    Directive { name: String },
+    Comment,
 }
 
 impl Display for Token {
@@ -29,6 +33,10 @@ impl Display for Token {
             Token::Op { code } => write!(f, "{:?}", code),
             Token::Register { reg_num } => write!(f, "${0}", reg_num),
             Token::Number { value } => write!(f, "{}", value),
+            Token::LabelDecl { name } => write!(f, ":{}", name),
+            Token::LabelUsage { name } => write!(f, "@{}", name),
+            Token::Directive { name } => write!(f, ".{}", name),
+            Token::Comment => write!(f, ""),
         }
     }
 }

@@ -2,6 +2,7 @@ use crate::instruction::Opcode;
 
 /// Virtual machine state.
 #[allow(dead_code)]
+#[derive(Default)]
 pub struct VM {
     /// VM registers.
     pub registers: [i32; 32],
@@ -15,19 +16,6 @@ pub struct VM {
     remainder: u32,
     /// Contains the result of the last comparison operation.
     equal_flag: bool,
-}
-
-impl Default for VM {
-    fn default() -> Self {
-        VM {
-            registers: [0; 32],
-            program: vec![],
-            heap: vec![],
-            pc: 0,
-            remainder: 0,
-            equal_flag: false,
-        }
-    }
 }
 
 impl VM {
@@ -102,7 +90,7 @@ impl VM {
             Opcode::DIV => {
                 let reg1 = self.registers[self.next_8()];
                 let reg2 = self.registers[self.next_8()];
-                self.registers[self.next_8()] = reg1 + reg2;
+                self.registers[self.next_8()] = reg1 / reg2;
                 self.remainder = (reg1 % reg2) as u32;
             }
             Opcode::JMP => {
@@ -134,6 +122,12 @@ impl VM {
                 if !self.equal_flag {
                     self.pc = target as usize;
                 }
+            }
+            Opcode::INC => {
+                self.registers[self.next_8()] += 1;
+            }
+            Opcode::DEC => {
+                self.registers[self.next_8()] -= 1;
             }
             Opcode::HLT => {
                 println!("HLT encountered, stopping VM");
@@ -207,6 +201,47 @@ mod tests {
     }
 
     #[test]
+    fn test_opcode_add() {
+        let mut vm = VM::new();
+        vm.program = vec![Opcode::ADD.into(), 0, 1, 2];
+        vm.registers[0] = 3;
+        vm.registers[1] = 4;
+        vm.step();
+        assert_eq!(vm.registers[2], 7);
+    }
+
+    #[test]
+    fn test_opcode_sub() {
+        let mut vm = VM::new();
+        vm.program = vec![Opcode::SUB.into(), 0, 1, 3];
+        vm.registers[0] = 10;
+        vm.registers[1] = 4;
+        vm.step();
+        assert_eq!(vm.registers[3], 6);
+    }
+
+    #[test]
+    fn test_opcode_mul() {
+        let mut vm = VM::new();
+        vm.program = vec![Opcode::MUL.into(), 0, 1, 0];
+        vm.registers[0] = 3;
+        vm.registers[1] = 4;
+        vm.step();
+        assert_eq!(vm.registers[0], 12);
+    }
+
+    #[test]
+    fn test_opcode_div() {
+        let mut vm = VM::new();
+        vm.program = vec![Opcode::DIV.into(), 0, 1, 3];
+        vm.registers[0] = 5;
+        vm.registers[1] = 2;
+        vm.step();
+        assert_eq!(vm.registers[3], 2);
+        assert_eq!(vm.remainder, 1);
+    }
+
+    #[test]
     fn test_opcode_jmp() {
         let mut vm = VM::new();
         vm.registers[0] = 1;
@@ -234,10 +269,10 @@ mod tests {
         vm.registers[1] = 10;
         vm.program = vec![Opcode::EQ.into(), 0, 1, 0, Opcode::EQ.into(), 0, 1, 0];
         vm.step();
-        assert_eq!(vm.equal_flag, true);
+        assert!(vm.equal_flag);
         vm.registers[1] = 20;
         vm.step();
-        assert_eq!(vm.equal_flag, false);
+        assert!(!vm.equal_flag);
     }
 
     #[test]
